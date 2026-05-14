@@ -8,7 +8,7 @@ A turn-based RPG combat game built in C++, then converted to a browser game with
 
 ## About
 
-This project started as a terminal game written in C++ as a way to learn programming fundamentals — variables, loops, conditionals, and switch statements. After getting the logic working, I converted it to a web browser version using HTML and JavaScript via Claude Code.
+This project started as a terminal game written in C++ as a way to learn programming fundamentals. Variables, loops, conditionals, and switch statements. After getting the logic working, I converted it to a web browser version using HTML and JavaScript via Claude Code.
 
 ## How to play
 
