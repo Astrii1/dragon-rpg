@@ -1,3 +1,5 @@
+// This is the original C++ code I wrote mostly by my self (Jon helped me with switch statements)
+
 #include <iostream>
 
 using namespace std;
