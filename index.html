@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dragon's Den</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0e0e0e;
+      color: #e8e8e0;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    #game {
+      width: 100%;
+      max-width: 540px;
+    }
+
+    .title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: #888780;
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+    }
+
+    .arena {
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 1.5rem;
+    }
+
+    .combatant {
+      flex: 1;
+      background: #1a1a18;
+      border: 0.5px solid #333330;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .combatant-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: #888780;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sprite {
+      font-size: 52px;
+      text-align: center;
+      margin: 8px 0;
+      line-height: 1;
+    }
+
+    .sprite.shake { animation: shake 0.3s; }
+    .sprite.attack-right { animation: attackRight 0.3s; }
+    .sprite.attack-left { animation: attackLeft 0.3s; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    @keyframes attackRight {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(14px); }
+    }
+    @keyframes attackLeft {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(-14px); }
+    }
+
+    .hp-label {
+      font-size: 15px;
+      color: #888780;
+      margin-bottom: 5px;
+    }
+
+    .hp-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #0e0e0e;
+      border: 0.5px solid #333330;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .hp-bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    .hp-bar.green  { background: #1D9E75; }
+    .hp-bar.orange { background: #EF9F27; }
+    .hp-bar.red    { background: #E24B4A; }
+
+    .vs {
+      display: flex;
+      align-items: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: #444441;
+      padding: 0 2px;
+    }
+
+    .log-box {
+      background: #1a1a18;
+      border: 0.5px solid #333330;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      min-height: 64px;
+      margin-bottom: 1.5rem;
+      font-size: 18px;
+      color: #e8e8e0;
+      line-height: 1.6;
+    }
+
+    .log-line { margin-bottom: 2px; }
+    .log-line:last-child { margin-bottom: 0; }
+
+    .dmg-player  { color: #E24B4A; }
+    .dmg-monster { color: #1D9E75; }
+    .heal-text   { color: #1D9E75; }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 14px 8px;
+      border-radius: 8px;
+      border: 0.5px solid #333330;
+      background: #1a1a18;
+      color: #e8e8e0;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: background 0.15s, transform 0.1s;
+      line-height: 1.8;
+    }
+
+    .btn:hover:not(:disabled) { background: #242420; }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn.attack { border-color: #A32D2D; color: #E24B4A; }
+    .btn.heal   { border-color: #0F6E56; color: #1D9E75; }
+
+    .game-over {
+      text-align: center;
+      padding: 0.5rem 0;
+      width: 100%;
+    }
+
+    .result {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      margin-bottom: 0.75rem;
+    }
+
+    .result.win  { color: #1D9E75; }
+    .result.lose { color: #E24B4A; }
+
+    .game-over p {
+      font-size: 18px;
+      color: #888780;
+      margin-bottom: 1rem;
+    }
+
+    .btn.restart {
+      flex: unset;
+      padding: 12px 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <p class="title">⚔ Dragon's Den</p>
+
+    <div class="arena">
+      <div class="combatant">
+        <div class="combatant-name">Hero</div>
+        <div class="sprite" id="player-sprite">🧙</div>
+        <div class="hp-label" id="player-hp-label">HP: 115 / 115</div>
+        <div class="hp-bar-bg"><div class="hp-bar green" id="player-bar" style="width:100%"></div></div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="combatant">
+        <div class="combatant-name">Monster</div>
+        <div class="sprite" id="monster-sprite">🐉</div>
+        <div class="hp-label" id="monster-hp-label">HP: 200 / 200</div>
+        <div class="hp-bar-bg"><div class="hp-bar red" id="monster-bar" style="width:100%"></div></div>
+      </div>
+    </div>
+
+    <div class="log-box" id="log-box">
+      <div class="log-line">A fearsome dragon blocks your path!</div>
+      <div class="log-line">What will you do?</div>
+    </div>
+
+    <div class="actions" id="actions">
+      <button class="btn attack" id="btn-attack" onclick="doAttack()">⚔ Attack</button>
+      <button class="btn heal" id="btn-heal" onclick="doHeal()">🧪 Heal<br><span id="potion-count">(3 left)</span></button>
+    </div>
+  </div>
+
+  <script>
+    let playerHealth    = 115;
+    const playerMaxHealth = 115;
+    const playerDamage  = 30;
+    let potions         = 3;
+    const potionRegen   = 50;
+    let monsterHealth   = 200;
+    const monsterMaxHealth = 200;
+    const monsterDamage = 28;
+    let busy = false;
+
+    function log(lines) {
+      document.getElementById('log-box').innerHTML =
+        lines.map(l => `<div class="log-line">${l}</div>`).join('');
+    }
+
+    function updateBars() {
+      const pPct = Math.max(0, (playerHealth / playerMaxHealth) * 100);
+      const mPct = Math.max(0, (monsterHealth / monsterMaxHealth) * 100);
+
+      const pBar = document.getElementById('player-bar');
+      pBar.style.width = pPct + '%';
+      pBar.className = 'hp-bar ' + (pPct > 50 ? 'green' : pPct > 25 ? 'orange' : 'red');
+
+      document.getElementById('monster-bar').style.width = mPct + '%';
+      document.getElementById('player-hp-label').textContent  = `HP: ${Math.max(0, playerHealth)} / ${playerMaxHealth}`;
+      document.getElementById('monster-hp-label').textContent = `HP: ${Math.max(0, monsterHealth)} / ${monsterMaxHealth}`;
+
+      const potionBtn = document.getElementById('btn-heal');
+      if (potionBtn) {
+        document.getElementById('potion-count').textContent = `(${potions} left)`;
+        potionBtn.disabled = potions === 0;
+      }
+    }
+
+    function animate(id, cls) {
+      const el = document.getElementById(id);
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), 350);
+    }
+
+    function setButtons(disabled) {
+      const atk = document.getElementById('btn-attack');
+      const heal = document.getElementById('btn-heal');
+      if (atk)  atk.disabled  = disabled;
+      if (heal) heal.disabled = disabled || potions === 0;
+    }
+
+    function checkEnd() {
+      if (monsterHealth <= 0) {
+        document.getElementById('actions').innerHTML = `
+          <div class="game-over">
+            <div class="result win">Victory!</div>
+            <p>The dragon has been slain!</p>
+            <button class="btn restart" onclick="restart()">↺ Play Again</button>
+          </div>`;
+        return true;
+      }
+      if (playerHealth <= 0) {
+        document.getElementById('actions').innerHTML = `
+          <div class="game-over">
+            <div class="result lose">Defeated...</div>
+            <p>You have been slain by the monster.</p>
+            <button class="btn restart" onclick="restart()">↺ Try Again</button>
+          </div>`;
+        return true;
+      }
+      return false;
+    }
+
+    function doAttack() {
+      if (busy) return;
+      busy = true;
+      setButtons(true);
+      animate('player-sprite', 'attack-right');
+
+      setTimeout(() => {
+        monsterHealth -= playerDamage;
+        animate('monster-sprite', 'shake');
+        updateBars();
+        const lines = [`<span class="dmg-monster">You strike for ${playerDamage} damage! Monster HP: ${Math.max(0, monsterHealth)}</span>`];
+
+        if (monsterHealth <= 0) {
+          log(lines);
+          checkEnd();
+          busy = false;
+          return;
+        }
+
+        setTimeout(() => {
+          animate('monster-sprite', 'attack-left');
+          setTimeout(() => {
+            playerHealth -= monsterDamage;
+            animate('player-sprite', 'shake');
+            updateBars();
+            lines.push(`<span class="dmg-player">The dragon retaliates for ${monsterDamage}! Your HP: ${Math.max(0, playerHealth)}</span>`);
+            log(lines);
+            if (!checkEnd()) setButtons(false);
+            busy = false;
+          }, 150);
+        }, 300);
+      }, 150);
+    }
+
+    function doHeal() {
+      if (busy || potions === 0) return;
+      if (playerHealth === playerMaxHealth) {
+        log(["You're already at full health!"]);
+        return;
+      }
+      busy = true;
+      setButtons(true);
+      potions--;
+
+      const healed = Math.min(potionRegen, playerMaxHealth - playerHealth);
+      playerHealth = Math.min(playerMaxHealth, playerHealth + potionRegen);
+      updateBars();
+      const lines = [`<span class="heal-text">You drink a potion and recover ${healed} HP!</span>`];
+
+      setTimeout(() => {
+        animate('monster-sprite', 'attack-left');
+        setTimeout(() => {
+          playerHealth -= monsterDamage;
+          animate('player-sprite', 'shake');
+          updateBars();
+          lines.push(`<span class="dmg-player">The dragon hits you for ${monsterDamage} while you drink! HP: ${Math.max(0, playerHealth)}</span>`);
+          log(lines);
+          if (!checkEnd()) setButtons(false);
+          busy = false;
+        }, 150);
+      }, 300);
+    }
+
+    function restart() {
+      playerHealth  = 115;
+      monsterHealth = 200;
+      potions       = 3;
+      busy          = false;
+      document.getElementById('actions').innerHTML = `
+        <button class="btn attack" id="btn-attack" onclick="doAttack()">⚔ Attack</button>
+        <button class="btn heal" id="btn-heal" onclick="doHeal()">🧪 Heal<br><span id="potion-count">(3 left)</span></button>`;
+      updateBars();
+      log(['A fearsome dragon blocks your path!', 'What will you do?']);
+    }
+
+    updateBars();
+  </script>
+</body>
+</html>
