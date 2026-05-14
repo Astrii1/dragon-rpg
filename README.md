@@ -4,11 +4,11 @@ A turn-based RPG combat game built in C++, then converted to a browser game with
 
 ## Play it
 
-👉 [Play in browser](https://YOUR-USERNAME.github.io/dragon-rpg)
+👉 [Play in browser](https://astrii1.github.io/dragon-rpg)
 
 ## About
 
-This project started as a terminal game written in C++ as a way to learn programming fundamentals — variables, loops, conditionals, and switch statements. After getting the logic working, I converted it to a web browser version using HTML and JavaScript.
+This project started as a terminal game written in C++ as a way to learn programming fundamentals — variables, loops, conditionals, and switch statements. After getting the logic working, I converted it to a web browser version using HTML and JavaScript via Claude Code.
 
 ## How to play
 
